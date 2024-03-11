@@ -1,5 +1,5 @@
 import pytest
-from testapp.models import Configuration, Listing, Preference, Record, Searchable
+from testapp.models import Configuration, Listing, NestedListing, Preference, Record, Searchable
 
 from djantic import ModelSchema
 
@@ -278,7 +278,7 @@ def test_listing():
             "id": {"title": "Id", "description": "id", "type": "integer"},
             "items": {
                 "description": "items",
-                "items": {},
+                "items": { "type": "string" },
                 "title": "Items",
                 "type": "array",
             },
@@ -290,4 +290,43 @@ def test_listing():
     assert ListingSchema.from_django(preference).dict() == {
         "id": None,
         "items": ["a", "b"],
+    }
+
+# TODO Confirm schema is correct, try mixed array types and other edge cases
+@pytest.mark.django_db
+def test_nested_listing():
+    class NestedListingSchema(ModelSchema):
+        class Config:
+            model = NestedListing
+            use_enum_values = True
+    
+    assert NestedListingSchema.schema() == {
+        'description': 'NestedListing(id, items)',
+        'properties': {
+            'id': {
+                'description': 'id',
+                'title': 'Id',
+                'type': 'integer',
+            },
+            'items': {
+                'description': 'items',
+                'items': {
+                    'items': {
+                        'type': 'string',
+                    },
+                    'type': 'array',
+                },
+                'title': 'Items',
+                'type': 'array',
+            },
+        },
+        'required': ['items'],
+        'title': 'NestedListingSchema',
+        'type': 'object',
+    }
+
+    preference = NestedListing(items=[["a", "b"], ["b", "c"]])
+    assert NestedListingSchema.from_django(preference).dict() == {
+        "id": None,
+        "items": [["a", "b"], ["b", "c"]],
     }

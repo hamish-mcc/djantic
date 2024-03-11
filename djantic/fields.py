@@ -120,7 +120,13 @@ def ModelSchemaField(field: Any, schema_name: str) -> tuple:
                 python_type = int
 
             elif internal_type in FIELD_TYPES:
-                python_type = FIELD_TYPES[internal_type]
+                # TODO: Check this is the correct way to do it
+                if internal_type == "ArrayField":
+                    base_field_python_type = ModelSchemaField(field.base_field, schema_name)[0]
+                    python_type = FIELD_TYPES[internal_type][base_field_python_type]
+                else:
+                    python_type = FIELD_TYPES[internal_type]
+
 
             else:  # pragma: nocover
                 for field_class in type(field).__mro__:

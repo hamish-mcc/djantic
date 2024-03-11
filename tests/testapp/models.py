@@ -270,3 +270,7 @@ class Case(ExtendedModel):
 
 class Listing(models.Model):
     items = ArrayField(models.TextField(), size=4)
+
+
+class NestedListing(models.Model):
+    items = ArrayField(ArrayField(models.TextField(), size=4), size=4)
